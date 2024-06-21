@@ -32,13 +32,7 @@
             border: 2px solid #ff8c00;
             border-radius: 5px;
             margin: 5px;
-            width: 150px;
-        }
-        #phoneLast4 {
-            width: 150px;
-        }
-        #productName {
-            width: 250px;
+            width: 150px; /* 입력란 너비 */
         }
         .btn {
             background-color: #ff8c00;
@@ -97,7 +91,7 @@
             <tr>
                 <th>이름</th>
                 <th>운송장번호</th>
-                <th style="width: 150px;">전화번호 뒤 4자리</th>
+                <th>전화번호 뒤 4자리</th>
                 <th>제품명</th>
                 <th>날짜</th>
                 <th>현재 상태</th>
@@ -110,11 +104,9 @@
         </tbody>
     </table>
 
-    <!-- Firebase SDK 추가 -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
-
-    <!-- Firebase 초기화 -->
+    <script>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDciIdx-kQhdCEQqTUskdb6Njq3aAJU_ys",
@@ -127,10 +119,10 @@
         };
 
         // Firebase 초기화
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        const firebaseApp = firebase.initializeApp(firebaseConfig);
+        const database = firebaseApp.database();
 
-        // 배송 상태 추가
+        // 데이터 추가 함수
         function addStatus() {
             const name = document.getElementById('name').value;
             const trackingNumber = document.getElementById('trackingNumber').value;
@@ -140,50 +132,58 @@
             const status = document.getElementById('status').value;
             const location = document.getElementById('location').value;
 
-            const newStatusRef = database.ref('statuses').push();
-            newStatusRef.set({
-                name,
-                trackingNumber,
-                phoneLast4,
-                productName,
-                date,
-                status,
-                location
+            // 데이터베이스에 데이터 추가
+            database.ref('statuses').push({
+                name: name,
+                trackingNumber: trackingNumber,
+                phoneLast4: phoneLast4,
+                productName: productName,
+                date: date,
+                status: status,
+                location: location
             });
 
-            loadStatuses(); // 데이터가 추가된 후 테이블을 다시 로드
+            // 입력 필드 초기화
+            document.getElementById('name').value = '';
+            document.getElementById('trackingNumber').value = '';
+            document.getElementById('phoneLast4').value = '';
+            document.getElementById('productName').value = '';
+            document.getElementById('date').value = '';
+            document.getElementById('status').value = '';
+            document.getElementById('location').value = '';
         }
 
-        // 배송 상태 로드
+        // 데이터 로드 함수
         function loadStatuses() {
-            const table = document.getElementById('statusTable').getElementsByTagName('tbody')[0];
-            table.innerHTML = ''; // 기존 데이터를 초기화
-
-            database.ref('statuses').once('value', (snapshot) => {
+            const statusTable = document.getElementById('statusTable').getElementsByTagName('tbody')[0];
+            database.ref('statuses').on('value', (snapshot) => {
+                statusTable.innerHTML = ''; // 테이블 초기화
                 snapshot.forEach((childSnapshot) => {
-                    const statusData = childSnapshot.val();
-                    const newRow = table.insertRow();
-                    newRow.innerHTML = `
-                        <td>${statusData.name}</td>
-                        <td>${statusData.trackingNumber}</td>
-                        <td>${statusData.phoneLast4}</td>
-                        <td>${statusData.productName}</td>
-                        <td>${statusData.date}</td>
-                        <td>${statusData.status}</td>
-                        <td>${statusData.location}</td>
+                    const data = childSnapshot.val();
+                    const row = statusTable.insertRow();
+                    row.innerHTML = `
+                        <td>${data.name}</td>
+                        <td>${data.trackingNumber}</td>
+                        <td>${data.phoneLast4}</td>
+                        <td>${data.productName}</td>
+                        <td>${data.date}</td>
+                        <td>${data.status}</td>
+                        <td>${data.location}</td>
                         <td><button class="btn btn-delete" onclick="deleteStatus('${childSnapshot.key}')">삭제</button></td>
                     `;
                 });
             });
         }
 
-        // 배송 상태 삭제
-        function deleteStatus(id) {
-            database.ref('statuses/' + id).remove();
-            loadStatuses(); // 데이터가 삭제된 후 테이블을 다시 로드
+        // 데이터 삭제 함수
+        function deleteStatus(statusId) {
+            database.ref('statuses/' + statusId).remove();
         }
 
-        document.addEventListener('DOMContentLoaded', loadStatuses);
+        // 페이지 로드 시 데이터 로드
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStatuses();
+        });
     </script>
 </body>
 </html>
