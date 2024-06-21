@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>언주연구회 지침서 배송조회시스템</title>
+    <title>배송 조회</title>
     <style>
         body {
             display: flex;
@@ -56,10 +56,10 @@
 <body>
     <div class="input-box">
         <h1>배송 조회</h1>
-        <h3>문의 : eonjuress@gmail.com</h3>
         <input type="text" id="name" placeholder="이름">
-        <input type="text" id="trackingNumber" placeholder="운송장 번호 입력">
-        <button class="btn" onclick="trackShipment()">조회</button>
+        <input type="text" id="trackingNumber" placeholder="운송장번호">
+        <button class="btn" onclick="trackShipment()">배송 조회</button>
+        <a href="login.html" class="link">관리자 페이지로 이동</a>
     </div>
 
     <script>
