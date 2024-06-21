@@ -207,7 +207,7 @@
             const trackingNumber = row.cells[1].innerText;
             const phoneLast4 = row.cells[2].innerText;
 
-            // Firebase에서 해당 데이터 삭제
+            // Firebase에서 해당 데이터 찾기 및 삭제
             database.ref('statuses')
                 .orderByChild('name_trackingNumber_phoneLast4')
                 .equalTo(`${name}_${trackingNumber}_${phoneLast4}`)
