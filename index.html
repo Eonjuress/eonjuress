@@ -1,73 +1,71 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>배송 조회</title>
+    <title>운송 조회 입력</title>
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #f7f7f7;
-            color: #333;
-        }
-        .input-box {
-            background-color: white;
-            padding: 40px;
-            border: 2px solid #ff8c00;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        input[type="text"] {
-            padding: 15px;
-            border: 2px solid #ff8c00;
-            border-radius: 5px;
-            margin: 10px;
-            width: 300px;
-        }
-        .btn {
-            background-color: #ff8c00;
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 5px;
-            box-shadow: 0 4px #d97700;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .btn:active {
-            box-shadow: 0 2px #d97700;
-            transform: translateY(2px);
-        }
-        .link {
-            margin-top: 20px;
-            font-size: 16px;
-            color: #ff8c00;
-            text-decoration: none;
-        }
+        body { background-color: #FFA500; }
+        h1 { color: #FFFFFF; }
+        form { margin-top: 20px; }
     </style>
 </head>
 <body>
-    <div class="input-box">
-        <h1>배송 조회</h1>
-        <input type="text" id="name" placeholder="이름">
-        <input type="text" id="trackingNumber" placeholder="운송장번호">
-        <button class="btn" onclick="trackShipment()">배송 조회</button>
-        <a href="login.html" class="link">관리자 페이지로 이동</a>
-    </div>
+    <h1>운송장번호 및 이름 입력</h1>
+    <form id="searchForm">
+        <label for="tracking">운송장번호:</label>
+        <input type="text" id="tracking" name="tracking"><br><br>
+        <label for="name">이름:</label>
+        <input type="text" id="name" name="name"><br><br>
+        <input type="submit" value="확인">
+    </form>
 
+    <div id="message"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.0.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.1/firebase-database.js"></script>
     <script>
-        function trackShipment() {
+        const firebaseConfig = {
+            apiKey: "AIzaSyDciIdx-kQhdCEQqTUskdb6Njq3aAJU_ys",
+            authDomain: "eonjuress-6c0be.firebaseapp.com",
+            databaseURL: "https://eonjuress-6c0be-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "eonjuress-6c0be",
+            storageBucket: "eonjuress-6c0be.appspot.com",
+            messagingSenderId: "955368935065",
+            appId: "1:955368935065:web:c4230ce8a51e1713a5b208"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        const searchForm = document.getElementById('searchForm');
+        const messageDiv = document.getElementById('message');
+
+        searchForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const tracking = document.getElementById('tracking').value;
             const name = document.getElementById('name').value;
-            const trackingNumber = document.getElementById('trackingNumber').value;
-            window.location.href = `status.html?name=${encodeURIComponent(name)}&trackingNumber=${encodeURIComponent(trackingNumber)}`;
-        }
+
+            // Check if tracking and name match in Firebase
+            const ref = database.ref('shipments');
+            ref.orderByChild('tracking').equalTo(tracking).once('value', function(snapshot) {
+                let found = false;
+                snapshot.forEach(function(childSnapshot) {
+                    const shipment = childSnapshot.val();
+                    if (shipment.name === name) {
+                        found = true;
+                        // Redirect to page2.html upon successful match
+                        window.location.href = `page2.html?tracking=${tracking}&name=${name}`;
+                    }
+                });
+
+                if (!found) {
+                    messageDiv.innerText = '입력한 정보가 일치하지 않습니다. 다시 시도하세요.';
+                }
+            });
+        });
     </script>
 </body>
 </html>
