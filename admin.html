@@ -126,9 +126,11 @@
             appId: "1:955368935065:web:c4230ce8a51e1713a5b208"
         };
 
+        // Firebase 초기화
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
+        // 배송 상태 추가
         function addStatus() {
             const name = document.getElementById('name').value;
             const trackingNumber = document.getElementById('trackingNumber').value;
@@ -149,9 +151,10 @@
                 location
             });
 
-            loadStatuses(); // 새 데이터를 바로 로드
+            loadStatuses(); // 데이터가 추가된 후 테이블을 다시 로드
         }
 
+        // 배송 상태 로드
         function loadStatuses() {
             const table = document.getElementById('statusTable').getElementsByTagName('tbody')[0];
             table.innerHTML = ''; // 기존 데이터를 초기화
@@ -168,15 +171,16 @@
                         <td>${statusData.date}</td>
                         <td>${statusData.status}</td>
                         <td>${statusData.location}</td>
-                        <td><button class="btn btn-delete" onclick="deleteRow('${childSnapshot.key}')">삭제</button></td>
+                        <td><button class="btn btn-delete" onclick="deleteStatus('${childSnapshot.key}')">삭제</button></td>
                     `;
                 });
             });
         }
 
-        function deleteRow(id) {
+        // 배송 상태 삭제
+        function deleteStatus(id) {
             database.ref('statuses/' + id).remove();
-            loadStatuses(); // 데이터 삭제 후 로드
+            loadStatuses(); // 데이터가 삭제된 후 테이블을 다시 로드
         }
 
         document.addEventListener('DOMContentLoaded', loadStatuses);
