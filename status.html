@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>배송 현황</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f7f7f7;
+            color: #333;
+        }
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: 20px 0;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background-color: #ff8c00;
+            color: white;
+        }
+        td:nth-child(3) {
+            width: 150px; /* 전화번호 뒤 4자리 열의 너비 */
+        }
+    </style>
+</head>
+<body>
+    <h1>배송 현황</h1>
+    <table id="statusTable">
+        <thead>
+            <tr>
+                <th>이름</th>
+                <th>운송장번호</th>
+                <th>전화번호 뒤 4자리</th>
+                <th>제품명</th>
+                <th>날짜</th>
+                <th>현재 상태</th>
+                <th>위치</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- 데이터가 여기에 추가됩니다 -->
+        </tbody>
+    </table>
+
+    <script>
+        function getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                name: params.get('name'),
+                trackingNumber: params.get('trackingNumber')
+            };
+        }
+
+        function loadStatus() {
+            const { name, trackingNumber } = getQueryParams();
+            const statuses = JSON.parse(localStorage.getItem('statuses') || '[]');
+            const table = document.getElementById('statusTable').getElementsByTagName('tbody')[0];
+
+            statuses
+                .filter(status => status.name === name && status.trackingNumber === trackingNumber)
+                .forEach(({ name, trackingNumber, phoneLast4, productName, date, status, location }) => {
+                    const newRow = table.insertRow();
+                    newRow.innerHTML = `
+                        <td>${name}</td>
+                        <td>${trackingNumber}</td>
+                        <td>${phoneLast4}</td>
+                        <td>${productName}</td>
+                        <td>${date}</td>
+                        <td>${status}</td>
+                        <td>${location}</td>
+                    `;
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadStatus);
+    </script>
+</body>
+</html>

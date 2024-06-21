@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>배송 조회 및 관리</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: #333;
+        }
+        h1 {
+            color: #ff8c00;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input[type="text"], input[type="date"] {
+            padding: 10px;
+            border: 2px solid #ff8c00;
+            border-radius: 5px;
+            margin: 5px;
+            width: 150px; /* 입력란 너비 */
+        }
+        #phoneLast4 {
+            width: 150px; /* '전화번호 뒤 4자리' 열 너비 */
+        }
+        #productName {
+            width: 250px; /* 제품명 열 너비 */
+        }
+        .btn {
+            background-color: #ff8c00;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 4px #d97700;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #e58000;
+        }
+        table {
+            width: 80%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background-color: #ff8c00;
+            color: white;
+        }
+        .btn-delete {
+            background-color: #ff6347;
+            transition: background-color 0.3s ease;
+        }
+        .btn-delete:hover {
+            background-color: #d9563f;
+        }
+    </style>
+</head>
+<body>
+    <h1>배송 조회 및 관리</h1>
+
+    <div class="input-group">
+        <input type="text" id="name" placeholder="이름">
+        <input type="text" id="trackingNumber" placeholder="운송장번호">
+        <input type="text" id="phoneLast4" placeholder="전화번호 뒤 4자리">
+        <input type="text" id="productName" placeholder="제품명">
+        <input type="date" id="date">
+        <input type="text" id="status" placeholder="현재 상태">
+        <input type="text" id="location" placeholder="위치">
+        <button class="btn" onclick="addStatus()">추가</button>
+    </div>
+
+    <table id="statusTable">
+        <thead>
+            <tr>
+                <th>이름</th>
+                <th>운송장번호</th>
+                <th style="width: 150px;">전화번호 뒤 4자리</th>
+                <th>제품명</th>
+                <th>날짜</th>
+                <th>현재 상태</th>
+                <th>위치</th>
+                <th>삭제</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- 데이터가 여기에 추가됩니다 -->
+        </tbody>
+    </table>
+
+    <script>
+        function addStatus() {
+            const name = document.getElementById('name').value;
+            const trackingNumber = document.getElementById('trackingNumber').value;
+            const phoneLast4 = document.getElementById('phoneLast4').value;
+            const productName = document.getElementById('productName').value;
+            const date = document.getElementById('date').value;
+            const status = document.getElementById('status').value;
+            const location = document.getElementById('location').value;
+
+            const table = document.getElementById('statusTable').getElementsByTagName('tbody')[0];
+            const newRow = table.insertRow();
+            newRow.innerHTML = `
+                <td>${name}</td>
+                <td>${trackingNumber}</td>
+                <td>${phoneLast4}</td>
+                <td>${productName}</td>
+                <td>${date}</td>
+                <td>${status}</td>
+                <td>${location}</td>
+                <td><button class="btn btn-delete" onclick="deleteRow(this)">삭제</button></td>
+            `;
+
+            saveStatus(name, trackingNumber, phoneLast4, productName, date, status, location);
+        }
+
+        function saveStatus(name, trackingNumber, phoneLast4, productName, date, status, location) {
+            let statuses = JSON.parse(localStorage.getItem('statuses') || '[]');
+            statuses.push({ name, trackingNumber, phoneLast4, productName, date, status, location });
+            localStorage.setItem('statuses', JSON.stringify(statuses));
+        }
+
+        function loadStatuses() {
+            const statuses = JSON.parse(localStorage.getItem('statuses') || '[]');
+            const table = document.getElementById('statusTable').getElementsByTagName('tbody')[0];
+            statuses.forEach(({ name, trackingNumber, phoneLast4, productName, date, status, location }) => {
+                const newRow = table.insertRow();
+                newRow.innerHTML = `
+                    <td>${name}</td>
+                    <td>${trackingNumber}</td>
+                    <td>${phoneLast4}</td>
+                    <td>${productName}</td>
+                    <td>${date}</td>
+                    <td>${status}</td>
+                    <td>${location}</td>
+                    <td><button class="btn btn-delete" onclick="deleteRow(this)">삭제</button></td>
+                `;
+            });
+        }
+
+        function deleteRow(btn) {
+            const row = btn.parentNode.parentNode;
+            const rowIndex = row.rowIndex - 1; // 헤더를 제외한 실제 데이터 행의 인덱스
+            row.parentNode.removeChild(row); // 테이블에서 행 삭제
+
+            let statuses = JSON.parse(localStorage.getItem('statuses') || '[]');
+            statuses.splice(rowIndex, 1); // 배열에서 해당 인덱스의 데이터 삭제
+            localStorage.setItem('statuses', JSON.stringify(statuses)); // 업데이트된 데이터 저장
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStatuses();
+        });
+    </script>
+</body>
+</html>
