@@ -6,24 +6,18 @@
     <title>배송 현황</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f7f7f7;
-            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
+            background-color: #f7f7f7;
             color: #333;
         }
-        h1 {
-            color: #ff8c00;
-            margin-bottom: 20px;
-        }
         table {
-            width: 80%;
             border-collapse: collapse;
-            margin-top: 20px;
+            width: 80%;
+            margin: 20px 0;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             background-color: white;
         }
@@ -36,6 +30,9 @@
             background-color: #ff8c00;
             color: white;
         }
+        td:nth-child(3) {
+            width: 150px; /* 전화번호 뒤 4자리 열의 너비 */
+        }
     </style>
 </head>
 <body>
@@ -45,7 +42,7 @@
             <tr>
                 <th>이름</th>
                 <th>운송장번호</th>
-                <th style="width: 150px;">전화번호 뒤 4자리</th>
+                <th>전화번호 뒤 4자리</th>
                 <th>제품명</th>
                 <th>날짜</th>
                 <th>현재 상태</th>
@@ -57,13 +54,11 @@
         </tbody>
     </table>
 
-    <!-- Firebase SDK 추가 -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
-
-    <!-- Firebase 초기화 -->
+    <!-- Firebase 스크립트 -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-database.js"></script>
     <script>
-    <script>
+        // Firebase 설정 객체
         const firebaseConfig = {
             apiKey: "AIzaSyDciIdx-kQhdCEQqTUskdb6Njq3aAJU_ys",
             authDomain: "eonjuress-6c0be.firebaseapp.com",
@@ -74,8 +69,41 @@
             appId: "1:955368935065:web:c4230ce8a51e1713a5b208"
         };
 
+        // Firebase 초기화
         firebase.initializeApp(firebaseConfig);
+
+        // Firebase Realtime Database 참조
         const database = firebase.database();
+
+        // 페이지 로드 시 데이터 로드
+        document.addEventListener('DOMContentLoaded', loadStatus);
+
+        function loadStatus() {
+            const params = getQueryParams();
+            const { name, trackingNumber } = params;
+            const table = document.getElementById('statusTable').getElementsByTagName('tbody')[0];
+
+            // Firebase에서 데이터 가져오기
+            database.ref('statuses').orderByChild('name_trackingNumber').equalTo(`${name}_${trackingNumber}`).once('value')
+                .then((snapshot) => {
+                    snapshot.forEach((childSnapshot) => {
+                        const data = childSnapshot.val();
+                        const newRow = table.insertRow();
+                        newRow.innerHTML = `
+                            <td>${data.name}</td>
+                            <td>${data.trackingNumber}</td>
+                            <td>${data.phoneLast4}</td>
+                            <td>${data.productName}</td>
+                            <td>${data.date}</td>
+                            <td>${data.status}</td>
+                            <td>${data.location}</td>
+                        `;
+                    });
+                })
+                .catch((error) => {
+                    console.error('데이터 로드 실패', error);
+                });
+        }
 
         function getQueryParams() {
             const params = new URLSearchParams(window.location.search);
@@ -84,32 +112,6 @@
                 trackingNumber: params.get('trackingNumber')
             };
         }
-
-        function loadStatus() {
-            const { name, trackingNumber } = getQueryParams();
-            const table = document.getElementById('statusTable').getElementsByTagName('tbody')[0];
-            table.innerHTML = ''; // 기존 데이터를 초기화
-
-            database.ref('statuses').orderByChild('name').equalTo(name).once('value', (snapshot) => {
-                snapshot.forEach((childSnapshot) => {
-                    const statusData = childSnapshot.val();
-                    if (statusData.trackingNumber === trackingNumber) {
-                        const newRow = table.insertRow();
-                        newRow.innerHTML = `
-                            <td>${statusData.name}</td>
-                            <td>${statusData.trackingNumber}</td>
-                            <td>${statusData.phoneLast4}</td>
-                            <td>${statusData.productName}</td>
-                            <td>${statusData.date}</td>
-                            <td>${statusData.status}</td>
-                            <td>${statusData.location}</td>
-                        `;
-                    }
-                });
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', loadStatus);
     </script>
 </body>
 </html>
