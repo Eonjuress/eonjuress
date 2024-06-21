@@ -32,13 +32,13 @@
             border: 2px solid #ff8c00;
             border-radius: 5px;
             margin: 5px;
-            width: 150px; /* 입력란 너비 */
+            width: 150px;
         }
         #phoneLast4 {
-            width: 150px; /* '전화번호 뒤 4자리' 열 너비 */
+            width: 150px;
         }
         #productName {
-            width: 250px; /* 제품명 열 너비 */
+            width: 250px;
         }
         .btn {
             background-color: #ff8c00;
@@ -110,7 +110,25 @@
         </tbody>
     </table>
 
+    <!-- Firebase SDK 추가 -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+
+    <!-- Firebase 초기화 -->
     <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDciIdx-kQhdCEQqTUskdb6Njq3aAJU_ys",
+    authDomain: "eonjuress-6c0be.firebaseapp.com",
+    databaseURL: "https://eonjuress-6c0be-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "eonjuress-6c0be",
+    storageBucket: "eonjuress-6c0be.appspot.com",
+    messagingSenderId: "955368935065",
+    appId: "1:955368935065:web:c4230ce8a51e1713a5b208"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         function addStatus() {
             const name = document.getElementById('name').value;
             const trackingNumber = document.getElementById('trackingNumber').value;
@@ -120,59 +138,48 @@
             const status = document.getElementById('status').value;
             const location = document.getElementById('location').value;
 
-            const table = document.getElementById('statusTable').getElementsByTagName('tbody')[0];
-            const newRow = table.insertRow();
-            newRow.innerHTML = `
-                <td>${name}</td>
-                <td>${trackingNumber}</td>
-                <td>${phoneLast4}</td>
-                <td>${productName}</td>
-                <td>${date}</td>
-                <td>${status}</td>
-                <td>${location}</td>
-                <td><button class="btn btn-delete" onclick="deleteRow(this)">삭제</button></td>
-            `;
+            const newStatusRef = database.ref('statuses').push();
+            newStatusRef.set({
+                name,
+                trackingNumber,
+                phoneLast4,
+                productName,
+                date,
+                status,
+                location
+            });
 
-            saveStatus(name, trackingNumber, phoneLast4, productName, date, status, location);
-        }
-
-        function saveStatus(name, trackingNumber, phoneLast4, productName, date, status, location) {
-            let statuses = JSON.parse(localStorage.getItem('statuses') || '[]');
-            statuses.push({ name, trackingNumber, phoneLast4, productName, date, status, location });
-            localStorage.setItem('statuses', JSON.stringify(statuses));
+            loadStatuses(); // 새 데이터를 바로 로드
         }
 
         function loadStatuses() {
-            const statuses = JSON.parse(localStorage.getItem('statuses') || '[]');
             const table = document.getElementById('statusTable').getElementsByTagName('tbody')[0];
-            statuses.forEach(({ name, trackingNumber, phoneLast4, productName, date, status, location }) => {
-                const newRow = table.insertRow();
-                newRow.innerHTML = `
-                    <td>${name}</td>
-                    <td>${trackingNumber}</td>
-                    <td>${phoneLast4}</td>
-                    <td>${productName}</td>
-                    <td>${date}</td>
-                    <td>${status}</td>
-                    <td>${location}</td>
-                    <td><button class="btn btn-delete" onclick="deleteRow(this)">삭제</button></td>
-                `;
+            table.innerHTML = ''; // 기존 데이터를 초기화
+
+            database.ref('statuses').once('value', (snapshot) => {
+                snapshot.forEach((childSnapshot) => {
+                    const statusData = childSnapshot.val();
+                    const newRow = table.insertRow();
+                    newRow.innerHTML = `
+                        <td>${statusData.name}</td>
+                        <td>${statusData.trackingNumber}</td>
+                        <td>${statusData.phoneLast4}</td>
+                        <td>${statusData.productName}</td>
+                        <td>${statusData.date}</td>
+                        <td>${statusData.status}</td>
+                        <td>${statusData.location}</td>
+                        <td><button class="btn btn-delete" onclick="deleteRow('${childSnapshot.key}')">삭제</button></td>
+                    `;
+                });
             });
         }
 
-        function deleteRow(btn) {
-            const row = btn.parentNode.parentNode;
-            const rowIndex = row.rowIndex - 1; // 헤더를 제외한 실제 데이터 행의 인덱스
-            row.parentNode.removeChild(row); // 테이블에서 행 삭제
-
-            let statuses = JSON.parse(localStorage.getItem('statuses') || '[]');
-            statuses.splice(rowIndex, 1); // 배열에서 해당 인덱스의 데이터 삭제
-            localStorage.setItem('statuses', JSON.stringify(statuses)); // 업데이트된 데이터 저장
+        function deleteRow(id) {
+            database.ref('statuses/' + id).remove();
+            loadStatuses(); // 데이터 삭제 후 로드
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadStatuses();
-        });
+        document.addEventListener('DOMContentLoaded', loadStatuses);
     </script>
 </body>
 </html>
